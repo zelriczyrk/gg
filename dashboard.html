@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axion Control Panel</title>
+<style>
+:root {
+  --bg: #0b0f19;
+  --panel: #121826;
+  --border: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --sidebar-w: 260px;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,.35);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform .25s ease;
+}
+.sidebar-header {
+  padding: 22px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 18px;
+}
+.sidebar-header h1 { font-size: 18px; font-weight: 600; }
+.nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+.nav-section { margin-bottom: 24px; }
+.nav-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted);
+  padding: 0 12px 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 8px;
+  color: var(--muted); text-decoration: none;
+  font-size: 14px; font-weight: 500;
+  transition: all .15s; cursor: pointer;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(59,130,246,.1); color: var(--text); }
+.nav-item.active { background: rgba(59,130,246,.18); color: var(--primary); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar-footer {
+  padding: 16px; border-top: 1px solid var(--border);
+}
+.user-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px; border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg,#6366f1,#a855f7);
+  display: grid; place-items: center; font-weight: 600;
+}
+.user-info { flex: 1; overflow: hidden; }
+.user-info .name { font-size: 13px; font-weight: 600; }
+.user-info .role { font-size: 11px; color: var(--muted); }
+/* MAIN */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1; display: flex; flex-direction: column;
+  min-height: 100vh;
+}
+.topbar {
+  height: 64px; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 28px; position: sticky; top: 0; z-index: 50;
+}
+.search-box {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 14px; width: 320px;
+}
+.search-box input {
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-size: 14px; width: 100%;
+}
+.topbar-actions { display: flex; align-items: center; gap: 16px; }
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); display: grid; place-items: center;
+  cursor: pointer; transition: all .15s; position: relative;
+}
+.icon-btn:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--danger); font-size: 10px;
+  display: grid; place-items: center; color: #fff;
+}
+.content { padding: 28px; flex: 1; }
+.page-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 28px;
+}
+.page-header h2 { font-size: 24px; font-weight: 600; }
+.page-header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 8px; border: none;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all .15s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outline {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { background: rgba(255,255,255,.05); }
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px; margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  box-shadow: var(--shadow);
+}
+.stat-card .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.stat-card .value { font-size: 28px; font-weight: 700; letter-spacing: -.5px; }
+.stat-card .change {
+  font-size: 12px; margin-top: 10px;
+  display: flex; align-items: center; gap: 4px;
+}
+.change.up { color: var(--success); }
+.change.down { color: var(--danger); }
+/* GRID LAYOUT */
+.grid-2 {
+  display: grid; grid-template-columns: 1.6fr 1fr;
+  gap: 20px; margin-bottom: 20px;
+}
+.grid-3 {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  box-shadow: var(--shadow);
+}
+.card-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 18px;
+}
+.card-header h3 { font-size: 16px; font-weight: 600; }
+/* CHART PLACEHOLDER */
+.chart-area {
+  height: 240px; background: linear-gradient(180deg, rgba(59,130,246,.08), transparent);
+  border-radius: 8px; position: relative; overflow: hidden;
+}
+.chart-bars {
+  display: flex; align-items: flex-end; gap: 12px;
+  height: 100%; padding: 20px 10px 0;
+}
+.bar {
+  flex: 1; background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  border-radius: 4px 4px 0 0; transition: height .4s ease;
+  min-height: 20px;
+}
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; padding: 12px 14px; color: var(--muted);
+  font-weight: 500; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 14px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+.status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px; font-size: 12px;
+  font-weight: 500;
+}
+.status.online { background: rgba(34,197,94,.15); color: var(--success); }
+.status.offline { background: rgba(239,68,68,.15); color: var(--danger); }
+.status.pending { background: rgba(245,158,11,.15); color: var(--warning); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+/* ACTIVITY */
+.activity-list { list-style: none; }
+.activity-item {
+  display: flex; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: grid; place-items: center; flex-shrink: 0;
+  font-size: 14px;
+}
+.activity-icon.blue { background: rgba(59,130,246,.15); color: #3b82f6; }
+.activity-icon.green { background: rgba(34,197,94,.15); color: #22c55e; }
+.activity-icon.orange { background: rgba(245,158,11,.15); color: #f59e0b; }
+.activity-content { flex: 1; }
+.activity-content p { font-size: 13px; line-height: 1.4; }
+.activity-content .time { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* PROGRESS */
+.progress-item { margin-bottom: 18px; }
+.progress-item:last-child { margin-bottom: 0; }
+.progress-header {
+  display: flex; justify-content: space-between;
+  font-size: 13px; margin-bottom: 6px;
+}
+.progress-bar {
+  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width .5s ease;
+}
+/* MOBILE */
+.menu-toggle {
+  display: none; background: none; border: none;
+  color: var(--text); cursor: pointer; padding: 6px;
+}
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .menu-toggle { display: block; }
+  .search-box { width: 180px; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">A</div>
+    <h1>Axion Panel</h1>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-label">Chính</div>
+      <a class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Analytics
+      </a>
+      <a class="nav-item" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Người dùng
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Quản lý</div>
+      <a class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Đơn hàng
+      </a>
+      <a class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Sản phẩm
+      </a>
+      <a class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Cài đặt
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar">OP</div>
+      <div class="user-info">
+        <div class="name">Operator</div>
+        <div class="role">Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="menu-toggle" id="menuToggle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Tìm kiếm..." id="searchInput">
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Thông báo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge">3</span>
+      </button>
+      <button class="icon-btn" title="Tin nhắn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content" id="content">
+    <!-- Dashboard content injected by JS -->
+  </div>
+</div>
+
+<script>
+const data = {
+  stats: [
+    { label: 'Tổng doanh thu', value: '₫248.5M', change: '+12.4%', up: true },
+    { label: 'Đơn hàng', value: '1,842', change: '+8.2%', up: true },
+    { label: 'Người dùng', value: '9,371', change: '+3.1%', up: true },
+    { label: 'Tỷ lệ chuyển đổi', value: '4.87%', change: '-0.6%', up: false }
+  ],
+  orders: [
+    { id: '#ORD-7841', customer: 'Nguyễn Văn A', product: 'Laptop Pro 14', amount: '₫32.900.000', status: 'online' },
+    { id: '#ORD-7839', customer: 'Trần Thị B', product: 'Wireless Mouse', amount: '₫890.000', status: 'pending' },
+    { id: '#ORD-7835', customer: 'Lê Minh C', product: 'Monitor 27"', amount: '₫7.450.000', status: 'online' },
+    { id: '#ORD-7830', customer: 'Phạm H. D', product: 'Keyboard Mech', amount: '₫2.150.000', status: 'offline' },
+    { id: '#ORD-7824', customer: 'Hoàng E', product: 'USB-C Hub', amount: '₫1.290.000', status: 'online' }
+  ],
+  activities: [
+    { icon: 'blue', text: 'Đơn hàng mới #ORD-7841 từ Nguyễn Văn A', time: '2 phút trước' },
+    { icon: 'green', text: 'Thanh toán thành công ₫32.900.000', time: '5 phút trước' },
+    { icon: 'orange', text: 'Cảnh báo tồn kho thấp: Wireless Mouse', time: '18 phút trước' },
+    { icon: 'blue', text: 'Người dùng mới đăng ký: Phạm H. D', time: '32 phút trước' },
+    { icon: 'green', text: 'Xuất báo cáo tháng 8 hoàn tất', time: '1 giờ trước' }
+  ],
+  progress: [
+    { name: 'Laptop Pro 14', pct: 78 },
+    { name: 'Monitor 27"', pct: 64 },
+    { name: 'Keyboard Mech', pct: 91 },
+    { name: 'USB-C Hub', pct: 45 }
+  ]
+};
+
+const statusMap = { online: 'Hoàn thành', offline: 'Đã hủy', pending: 'Đang xử lý' };
+
+function renderDashboard() {
+  const bars = [65, 40, 80, 55, 90, 70, 45, 85, 60, 75, 50, 95];
+  return `
+    <div class="page-header">
+      <div>
+        <h2>Dashboard</h2>
+        <p>Tổng quan hệ thống · ${new Date().toLocaleDateString('vi-VN')}</p>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline">Xuất báo cáo</button>
+        <button class="btn btn-primary">+ Tạo mới</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      ${data.stats.map(s => `
+        <div class="stat-card">
+          <div class="label">${s.label}</div>
+          <div class="value">${s.value}</div>
+          <div class="change ${s.up ? 'up' : 'down'}">
+            ${s.up ? '↑' : '↓'} ${s.change} so với tháng trước
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h3>Doanh thu 12 tháng</h3>
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:12px">Năm 2026</button>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bars">
+            \( {bars.map(h => `<div class="bar" style="height: \){h}%"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Hoạt động gần đây</h3></div>
+        <ul class="activity-list">
+          ${data.activities.map(a => `
+            <li class="activity-item">
+              <div class="activity-icon ${a.icon}">●</div>
+              <div class="activity-content">
+                <p>${a.text}</p>
+                <div class="time">${a.time}</div>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h3>Đơn hàng mới nhất</h3>
+          <a href="#" style="font-size:13px;color:var(--primary)">Xem tất cả</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Sản phẩm</th>
+                <th>Số tiền</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.orders.map(o => `
+                <tr>
+                  <td style="font-weight:500">${o.id}</td>
+                  <td>${o.customer}</td>
+                  <td>${o.product}</td>
+                  <td>${o.amount}</td>
+                  <td><span class="status \( {o.status}"><span class="dot"></span> \){statusMap[o.status]}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Tiến độ bán hàng</h3></div>
+        ${data.progress.map(p => `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span>${p.name}</span>
+              <span>${p.pct}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${p.pct}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderPlaceholder(title) {
+  return `
+    <div class="page-header">
+      <div>
+        <h2>${title}</h2>
+        <p>Trang đang được xây dựng</p>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:80px 20px">
+      <p style="color:var(--muted);font-size:15px">Nội dung ${title} sẽ được load tại đây.</p>
+    </div>
+  `;
+}
+
+const pages = {
+  dashboard: renderDashboard,
+  analytics: () => renderPlaceholder('Analytics'),
+  users: () => renderPlaceholder('Người dùng'),
+  orders: () => renderPlaceholder('Đơn hàng'),
+  products: () => renderPlaceholder('Sản phẩm'),
+  settings: () => renderPlaceholder('Cài đặt')
+};
+
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const target = document.querySelector(`[data-page="${page}"]`);
+  if (target) target.classList.add('active');
+  document.getElementById('content').innerHTML = (pages[page] || pages.dashboard)();
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    navigate(el.dataset.page);
+  });
+});
+
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  // Simple live filter demo on current table if exists
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Boot
+navigate('dashboard');
+</script>
+</body>
+</html>
